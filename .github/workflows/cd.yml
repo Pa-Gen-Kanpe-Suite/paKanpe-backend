@@ -33,7 +33,7 @@ jobs:
         env:
           DATABASE_URL: sqlite:///./test.db
           JWT_SECRET: cd-test-secret-with-more-than-thirty-two-characters
-          NO_SHOW_GRACE_SECONDS: 300
+          NO_SHOW_GRACE_SECONDS: 0
 
   # --- Étape 2 : Build, Push Docker Image & Deploy ---
   build-and-deploy:
