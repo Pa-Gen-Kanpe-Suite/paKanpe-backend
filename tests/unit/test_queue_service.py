@@ -11,8 +11,8 @@ pytestmark = pytest.mark.unit
 
 
 def test_position_follows_creation_order(service_id):
-    """Vérifie que la position attribuée dans la file respecte
-
+    """
+    Vérifie que la position attribuée dans la file respecte
     l'ordre chronologique (FIFO).
     """
     with SessionLocal() as db:
@@ -42,8 +42,8 @@ def test_position_follows_creation_order(service_id):
 
 
 def test_average_uses_recent_completed_tickets(service_id):
-    """Vérifie que la moyenne du temps s'adapte en fonction
-
+    """
+    Vérifie que la moyenne du temps s'adapte en fonction
     des tickets clôturés (CLOSED).
     """
     with SessionLocal() as db:
