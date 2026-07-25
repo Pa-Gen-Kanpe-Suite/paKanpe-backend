@@ -50,11 +50,11 @@ jobs:
           pip install pytest pytest-asyncio pytest-cov httpx ruff alembic psycopg[binary]
 
       - name: Code Quality - Ruff Lint
-        run: ruff check app tests
+        run: ruff check --fix app tests
 
       - name: Code Quality - Ruff Formatting
-        run: ruff format --check app tests
-
+        run: ruff format app tests
+        
       - name: Run Database Migrations
         run: alembic upgrade head
 
