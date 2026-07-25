@@ -40,6 +40,9 @@ jobs:
     name: Build Docker Image & Deploy
     needs: test
     runs-on: ubuntu-latest
+    # ON DÉCLARE LE SECRET ICI AU NIVEAU DU JOB :
+    env:
+      STAGING_WEBHOOK_URL: ${{ secrets.STAGING_DEPLOY_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +69,6 @@ jobs:
             ghcr.io/${{ env.REPO_LOWER }}:latest
 
       - name: Trigger staging deployment
-        if: secrets.STAGING_DEPLOY_WEBHOOK_URL != ''
-        env:
-          DEPLOY_WEBHOOK_URL: ${{ secrets.STAGING_DEPLOY_WEBHOOK_URL }}
-        run: curl --fail --silent --show-error -X POST "$DEPLOY_WEBHOOK_URL"
+        #  ON TESTE LA VARIABLE ENV AINSI :
+        if: ${{ env.STAGING_WEBHOOK_URL != '' }}
+        run: curl --fail --silent --show-error -X POST "$STAGING_WEBHOOK_URL"
