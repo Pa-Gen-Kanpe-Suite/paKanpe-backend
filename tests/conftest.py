@@ -7,13 +7,39 @@ os.environ["NO_SHOW_GRACE_SECONDS"] = "0"
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
 from app.main import app
 from app.models import Bank, Counter, CounterStatus, Service, User, UserRole
+
+# Configuration de la Session pour la fixture db_session
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """Crée la structure des tables au début de la session de test et la nettoie à la fin."""
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def db_session():
+    """Fournit une session isolée qui annule (rollback) toutes les modifications après chaque test."""
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
+    yield session
+
+    session.close()
+    transaction.rollback()  # 🔄 Annule tout ce que le test a écrit !
+    connection.close()
 
 
 @pytest.fixture(autouse=True)
