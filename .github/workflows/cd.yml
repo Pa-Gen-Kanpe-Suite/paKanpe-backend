@@ -2,7 +2,7 @@ name: Backend CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, QA/devOPS-branch]
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-asyncio httpx ruff
+          pip install pytest pytest-asyncio httpx ruff alembic
 
       - name: Run Pytest Suite
         run: pytest
@@ -37,12 +37,11 @@ jobs:
   # --- Étape 2 : Build, Push Docker Image & Deploy ---
   build-and-deploy:
     name: Build Docker Image & Deploy
-    needs: test # La CD ne se lancera QUE si les tests passent avec succès !
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Conversion du nom de dépôt en minuscules (sécurité GHCR)
       - name: Downcase repository name
         run: echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
