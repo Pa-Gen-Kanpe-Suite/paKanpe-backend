@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 jobs:
-  # --- Étape 1 : Execution des tests avant la construction ---
+  # --- Étape 1 : Exécution des tests avant la construction ---
   test:
     name: Run Pytest
     runs-on: ubuntu-latest
@@ -24,8 +24,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          if [ -f pyproject.toml ]; then pip install .; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-asyncio httpx ruff alembic
+          pip install pytest pytest-asyncio pytest-cov httpx ruff alembic psycopg[binary]
 
       - name: Run Pytest Suite
         run: pytest
