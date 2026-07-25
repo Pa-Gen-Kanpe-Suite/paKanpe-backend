@@ -32,10 +32,7 @@ def as_counter_out(db: Session, counter: Counter) -> CounterOut:
 
 @router.get("/counters", response_model=list[CounterOut])
 def list_counters(db: Session = Depends(get_db), user: User = Depends(admin_only)):
-    return [
-        as_counter_out(db, counter)
-        for counter in db.scalars(select(Counter).order_by(Counter.number)).all()
-    ]
+    return [as_counter_out(db, counter) for counter in db.scalars(select(Counter).order_by(Counter.number)).all()]
 
 
 @router.post("/counters", response_model=CounterOut, status_code=201)

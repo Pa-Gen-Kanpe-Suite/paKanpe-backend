@@ -3,16 +3,16 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-def test_complete_digital_ticket_lifecycle(
-    api, client_headers, cashier_headers, admin_headers, service_id
-):
+def test_complete_digital_ticket_lifecycle(api, client_headers, cashier_headers, admin_headers, service_id):
     """
     Test d'intégration du cycle de vie complet d'un ticket numérique :
     WAITING -> CALLED -> IN_PROGRESS -> CLOSED + Validation des statistiques.
     """
     # 1. Création du ticket numérique
     created = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
+        "/api/v1/client/tickets",
+        json={"service_id": service_id},
+        headers=client_headers,
     )
     assert created.status_code == 201, created.text
     ticket = created.json()
@@ -21,7 +21,9 @@ def test_complete_digital_ticket_lifecycle(
 
     # 2. Refus d'un second ticket actif pour le même client (Règle MVP)
     duplicate = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
+        "/api/v1/client/tickets",
+        json={"service_id": service_id},
+        headers=client_headers,
     )
     assert duplicate.status_code == 409
 
@@ -36,7 +38,8 @@ def test_complete_digital_ticket_lifecycle(
 
     # 4. Appel du ticket
     called = api.post(
-        f"/api/v1/cashier/counters/{counter['id']}/next-ticket", headers=cashier_headers
+        f"/api/v1/cashier/counters/{counter['id']}/next-ticket",
+        headers=cashier_headers,
     )
     assert called.status_code == 200, called.text
     assert called.json()["id"] == ticket["id"]
@@ -44,7 +47,8 @@ def test_complete_digital_ticket_lifecycle(
 
     # 5. Début de traitement
     started = api.patch(
-        f"/api/v1/cashier/tickets/{ticket['id']}/start", headers=cashier_headers
+        f"/api/v1/cashier/tickets/{ticket['id']}/start",
+        headers=cashier_headers,
     )
     assert started.status_code == 200
     assert started.json()["status"] == "IN_PROGRESS"
@@ -67,17 +71,23 @@ def test_complete_digital_ticket_lifecycle(
 def test_client_can_cancel_only_while_waiting(api, client_headers, service_id):
     """Vérifie qu'un client peut annuler son ticket tant qu'il est en attente."""
     ticket = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
+        "/api/v1/client/tickets",
+        json={"service_id": service_id},
+        headers=client_headers,
     ).json()
     cancelled = api.patch(
-        f"/api/v1/client/tickets/{ticket['id']}/cancel", headers=client_headers
+        f"/api/v1/client/tickets/{ticket['id']}/cancel",
+        headers=client_headers,
     )
     assert cancelled.status_code == 200
     assert cancelled.json()["status"] == "CANCELLED"
 
 
 def test_physical_ticket_joins_same_queue(api, agent_headers, cashier_headers, service_id):
-    """Vérifie que les tickets physiques créés par un agent intègrent la même file d'attente unique."""
+    """
+    Vérifie que les tickets physiques créés par un agent
+    intègrent la même file d'attente unique.
+    """
     physical = api.post(
         "/api/v1/agent/tickets/physical",
         json={"service_id": service_id, "visitor_name": "Client sans téléphone"},
@@ -89,9 +99,14 @@ def test_physical_ticket_joins_same_queue(api, agent_headers, cashier_headers, s
 
 
 def test_client_can_consult_position_and_estimated_time(api, client_headers, service_id):
-    """Vérifie la consultation de la position et du temps d'attente estimé par le client."""
+    """
+    Vérifie la consultation de la position et du temps d'attente
+    estimé par le client.
+    """
     created = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
+        "/api/v1/client/tickets",
+        json={"service_id": service_id},
+        headers=client_headers,
     )
     assert created.status_code == 201
     ticket_id = created.json()["id"]
@@ -105,10 +120,15 @@ def test_client_can_consult_position_and_estimated_time(api, client_headers, ser
 
 
 def test_no_show_grace_period_handling(api, client_headers, cashier_headers, service_id):
-    """Vérifie le passage du statut d'un ticket en ABSENT ou LATE (gestion du délai de grâce)."""
+    """
+    Vérifie le passage du statut d'un ticket en ABSENT ou LATE
+    (gestion du délai de grâce).
+    """
     # 1. Création et appel d'un ticket
     ticket = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
+        "/api/v1/client/tickets",
+        json={"service_id": service_id},
+        headers=client_headers,
     ).json()
 
     counter = api.get("/api/v1/cashier/counters", headers=cashier_headers).json()[0]
@@ -118,12 +138,14 @@ def test_no_show_grace_period_handling(api, client_headers, cashier_headers, ser
         headers=cashier_headers,
     )
     api.post(
-        f"/api/v1/cashier/counters/{counter['id']}/next-ticket", headers=cashier_headers
+        f"/api/v1/cashier/counters/{counter['id']}/next-ticket",
+        headers=cashier_headers,
     )
 
     # 2. Marquage du ticket en ABSENT par le caissier
     no_show = api.patch(
-        f"/api/v1/cashier/tickets/{ticket['id']}/no-show", headers=cashier_headers
+        f"/api/v1/cashier/tickets/{ticket['id']}/no-show",
+        headers=cashier_headers,
     )
     assert no_show.status_code == 200
     assert no_show.json()["status"] == "ABSENT"

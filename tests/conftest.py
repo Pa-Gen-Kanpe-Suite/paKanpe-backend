@@ -3,13 +3,13 @@ import os
 # Ajustement de la base de données de test et des secrets
 os.environ["DATABASE_URL"] = os.getenv("TEST_DATABASE_URL", "sqlite:///./test.db")
 os.environ["JWT_SECRET"] = "test-secret-with-more-than-thirty-two-characters"
-# 300 secondes = 5 minutes de délai de grâce obligatoires selon le MVP
-os.environ["NO_SHOW_GRACE_SECONDS"] = "300"
+os.environ["NO_SHOW_GRACE_SECONDS"] = "0"
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
 from app.main import app
@@ -21,14 +21,23 @@ def clean_database():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
-        # CORRECTION : Utilisation d'une banque fictive (Nom réel interdit)
         bank = Bank(name="PA GEN KANPE BANK", branch_name="Agence Principale")
         db.add(bank)
         db.flush()
         db.add_all(
             [
-                Service(bank_id=bank.id, code="DEPOT", name="Dépôt", average_minutes=5),
-                Service(bank_id=bank.id, code="RETRAIT", name="Retrait", average_minutes=5),
+                Service(
+                    bank_id=bank.id,
+                    code="DEPOT",
+                    name="Dépôt",
+                    average_minutes=5,
+                ),
+                Service(
+                    bank_id=bank.id,
+                    code="RETRAIT",
+                    name="Retrait",
+                    average_minutes=5,
+                ),
                 Counter(
                     bank_id=bank.id,
                     number=1,
@@ -64,6 +73,15 @@ def clean_database():
         db.commit()
     yield
     Base.metadata.drop_all(engine)
+
+
+@pytest.fixture(autouse=True)
+def override_settings(monkeypatch):
+    """Surcharge no_show_grace_seconds à 0 et vide le cache Pydantic/lru_cache pour les tests."""
+    settings = get_settings()
+    monkeypatch.setattr(settings, "no_show_grace_seconds", 0)
+    if hasattr(get_settings, "cache_clear"):
+        get_settings.cache_clear()
 
 
 @pytest.fixture
