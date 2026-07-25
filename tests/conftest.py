@@ -3,8 +3,7 @@ import os
 # Ajustement de la base de données de test et des secrets
 os.environ["DATABASE_URL"] = os.getenv("TEST_DATABASE_URL", "sqlite:///./test.db")
 os.environ["JWT_SECRET"] = "test-secret-with-more-than-thirty-two-characters"
-# 300 secondes = 5 minutes de délai de grâce obligatoires selon le MVP
-os.environ["NO_SHOW_GRACE_SECONDS"] = "300"
+os.environ["NO_SHOW_GRACE_SECONDS"] = "0"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,14 +21,23 @@ def clean_database():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
-        # CORRECTION : Utilisation d'une banque fictive (Nom réel interdit)
         bank = Bank(name="PA GEN KANPE BANK", branch_name="Agence Principale")
         db.add(bank)
         db.flush()
         db.add_all(
             [
-                Service(bank_id=bank.id, code="DEPOT", name="Dépôt", average_minutes=5),
-                Service(bank_id=bank.id, code="RETRAIT", name="Retrait", average_minutes=5),
+                Service(
+                    bank_id=bank.id,
+                    code="DEPOT",
+                    name="Dépôt",
+                    average_minutes=5,
+                ),
+                Service(
+                    bank_id=bank.id,
+                    code="RETRAIT",
+                    name="Retrait",
+                    average_minutes=5,
+                ),
                 Counter(
                     bank_id=bank.id,
                     number=1,
@@ -67,13 +75,13 @@ def clean_database():
     Base.metadata.drop_all(engine)
 
 
+@pytest.fixture(autouse=True)
 def override_settings(monkeypatch):
-    """
-    Force NO_SHOW_GRACE_SECONDS à 0 pour tous les tests
-    afin de pouvoir valider le no-show sans attendre.
-    """
+    """Surcharge NO_SHOW_GRACE_SECONDS à 0 et vide le cache Pydantic/lru_cache pour les tests."""
     settings = get_settings()
     monkeypatch.setattr(settings, "NO_SHOW_GRACE_SECONDS", 0)
+    if hasattr(get_settings, "cache_clear"):
+        get_settings.cache_clear()
 
 
 @pytest.fixture
@@ -83,7 +91,9 @@ def api():
 
 
 def login(api: TestClient, email: str, password: str) -> dict[str, str]:
-    response = api.post("/api/v1/auth/login", json={"email": email, "password": password})
+    response = api.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
