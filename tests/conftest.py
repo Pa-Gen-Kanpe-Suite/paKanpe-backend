@@ -77,9 +77,9 @@ def clean_database():
 
 @pytest.fixture(autouse=True)
 def override_settings(monkeypatch):
-    """Surcharge NO_SHOW_GRACE_SECONDS à 0 et vide le cache Pydantic/lru_cache pour les tests."""
+    """Surcharge no_show_grace_seconds à 0 et vide le cache Pydantic/lru_cache pour les tests."""
     settings = get_settings()
-    monkeypatch.setattr(settings, "NO_SHOW_GRACE_SECONDS", 0)
+    monkeypatch.setattr(settings, "no_show_grace_seconds", 0) 
     if hasattr(get_settings, "cache_clear"):
         get_settings.cache_clear()
 
