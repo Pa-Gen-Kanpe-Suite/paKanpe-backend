@@ -131,5 +131,3 @@ def client_headers(api):
 def service_id():
     with SessionLocal() as db:
         return db.scalar(select(Service.id).where(Service.code == "DEPOT"))
-    
-    
