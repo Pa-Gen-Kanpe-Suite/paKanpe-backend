@@ -43,9 +43,7 @@ def test_complete_digital_ticket_lifecycle(
     assert called.json()["status"] == "CALLED"
 
     # 5. Début de traitement
-    started = api.patch(
-        f"/api/v1/cashier/tickets/{ticket['id']}/start", headers=cashier_headers
-    )
+    started = api.patch(f"/api/v1/cashier/tickets/{ticket['id']}/start", headers=cashier_headers)
     assert started.status_code == 200
     assert started.json()["status"] == "IN_PROGRESS"
 
@@ -69,9 +67,7 @@ def test_client_can_cancel_only_while_waiting(api, client_headers, service_id):
     ticket = api.post(
         "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
     ).json()
-    cancelled = api.patch(
-        f"/api/v1/client/tickets/{ticket['id']}/cancel", headers=client_headers
-    )
+    cancelled = api.patch(f"/api/v1/client/tickets/{ticket['id']}/cancel", headers=client_headers)
     assert cancelled.status_code == 200
     assert cancelled.json()["status"] == "CANCELLED"
 
@@ -123,13 +119,9 @@ def test_no_show_grace_period_handling(api, client_headers, cashier_headers, ser
         json={"status": "OPEN"},
         headers=cashier_headers,
     )
-    api.post(
-        f"/api/v1/cashier/counters/{counter['id']}/next-ticket", headers=cashier_headers
-    )
+    api.post(f"/api/v1/cashier/counters/{counter['id']}/next-ticket", headers=cashier_headers)
 
     # 2. Marquage du ticket en ABSENT par le caissier
-    no_show = api.patch(
-        f"/api/v1/cashier/tickets/{ticket['id']}/no-show", headers=cashier_headers
-    )
+    no_show = api.patch(f"/api/v1/cashier/tickets/{ticket['id']}/no-show", headers=cashier_headers)
     assert no_show.status_code == 200
     assert no_show.json()["status"] == "ABSENT"

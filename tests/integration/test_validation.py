@@ -3,6 +3,7 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
+
 def test_register_invalid_email_and_phone(api):
     """Vérifie que la création de compte échoue si l'email ou le téléphone est invalide."""
     response = api.post(
@@ -10,8 +11,8 @@ def test_register_invalid_email_and_phone(api):
         json={
             "full_name": "Test User",
             "email": "not-an-email",  # Email invalide
-            "phone": "123",           # Téléphone trop court
-            "password": "Short",      # Mot de passe faible
+            "phone": "123",  # Téléphone trop court
+            "password": "Short",  # Mot de passe faible
         },
     )
     assert response.status_code == 422
