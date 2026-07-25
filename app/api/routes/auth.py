@@ -14,9 +14,7 @@ router = APIRouter(prefix="/auth", tags=["Authentification"])
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(payload: UserCreate, db: Session = Depends(get_db)):
-    duplicate = db.scalar(
-        select(User.id).where(or_(User.email == payload.email.lower(), User.phone == payload.phone))
-    )
+    duplicate = db.scalar(select(User.id).where(or_(User.email == payload.email.lower(), User.phone == payload.phone)))
     if duplicate:
         raise HTTPException(status_code=409, detail="Email ou téléphone déjà utilisé")
     user = User(

@@ -29,10 +29,7 @@ def list_tickets(
     user: User = Depends(client_only),
 ):
     tickets = db.scalars(
-        select(Ticket)
-        .where(Ticket.client_id == user.id)
-        .order_by(Ticket.created_at.desc())
-        .limit(50)
+        select(Ticket).where(Ticket.client_id == user.id).order_by(Ticket.created_at.desc()).limit(50)
     ).all()
     return [serialize_ticket(db, ticket) for ticket in tickets]
 

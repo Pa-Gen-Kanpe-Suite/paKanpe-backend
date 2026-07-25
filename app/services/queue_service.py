@@ -10,10 +10,7 @@ from app.schemas import DisplayBoard, DisplayTicket, QueuePosition, TicketOut
 
 
 def active_counter_count(db: Session) -> int:
-    return (
-        db.scalar(select(func.count(Counter.id)).where(Counter.status == CounterStatus.OPEN.value))
-        or 0
-    )
+    return db.scalar(select(func.count(Counter.id)).where(Counter.status == CounterStatus.OPEN.value)) or 0
 
 
 def average_service_minutes(db: Session) -> float:
@@ -112,10 +109,7 @@ def display_board(db: Session) -> DisplayBoard:
         .order_by(Ticket.called_at.desc())
         .limit(8)
     ).all()
-    waiting = (
-        db.scalar(select(func.count(Ticket.id)).where(Ticket.status == TicketStatus.WAITING.value))
-        or 0
-    )
+    waiting = db.scalar(select(func.count(Ticket.id)).where(Ticket.status == TicketStatus.WAITING.value)) or 0
     return DisplayBoard(
         called=[
             DisplayTicket(

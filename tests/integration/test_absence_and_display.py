@@ -3,17 +3,13 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-def test_absence_is_terminal_and_ticket_leaves_queue(
-    api, client_headers, cashier_headers, service_id
-):
+def test_absence_is_terminal_and_ticket_leaves_queue(api, client_headers, cashier_headers, service_id):
     """
     Vérifie qu'un ticket marqué ABSENT sort de la file d'attente active
     et que l'écran d'affichage principal (Display) met à jour le nombre d'attentistes.
     """
     # 1. Le client crée un ticket numérique
-    ticket = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
-    ).json()
+    ticket = api.post("/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers).json()
 
     # 2. Le caissier ouvre son guichet et appelle le ticket
     counter = api.get("/api/v1/cashier/counters", headers=cashier_headers).json()[0]

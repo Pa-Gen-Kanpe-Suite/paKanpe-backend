@@ -3,9 +3,7 @@
 
 def test_create_digital_ticket_success(api, client_headers, service_id):
     """Vérifie qu'un client connecté peut créer un ticket numérique."""
-    response = api.post(
-        "/api/v1/tickets/digital", headers=client_headers, json={"service_id": service_id}
-    )
+    response = api.post("/api/v1/tickets/digital", headers=client_headers, json={"service_id": service_id})
     assert response.status_code in [200, 201]
     data = response.json()
     assert "number" in data or "ticket_number" in data
@@ -17,7 +15,5 @@ def test_prevent_duplicate_ticket(api, client_headers, service_id):
     api.post("/api/v1/tickets/digital", headers=client_headers, json={"service_id": service_id})
 
     # Ticket 2 -> Refusé
-    response2 = api.post(
-        "/api/v1/tickets/digital", headers=client_headers, json={"service_id": service_id}
-    )
+    response2 = api.post("/api/v1/tickets/digital", headers=client_headers, json={"service_id": service_id})
     assert response2.status_code == 400

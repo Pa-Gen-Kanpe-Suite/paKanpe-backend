@@ -84,9 +84,7 @@ class User(Base):
 
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="client")
 
-    __table_args__ = (
-        CheckConstraint("role IN ('CLIENT','AGENT','CASHIER','ADMIN')", name="ck_users_role"),
-    )
+    __table_args__ = (CheckConstraint("role IN ('CLIENT','AGENT','CASHIER','ADMIN')", name="ck_users_role"),)
 
 
 class Service(Base):
@@ -111,9 +109,7 @@ class Counter(Base):
     name: Mapped[str] = mapped_column(String(80))
     status: Mapped[str] = mapped_column(String(20), default=CounterStatus.CLOSED.value)
     cashier_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="counter")
 
@@ -138,9 +134,7 @@ class Ticket(Base):
     visitor_name: Mapped[str | None] = mapped_column(String(160))
     visitor_phone: Mapped[str | None] = mapped_column(String(30))
     comment: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, index=True
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
     called_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -148,9 +142,7 @@ class Ticket(Base):
     client: Mapped[User | None] = relationship(back_populates="tickets")
     service: Mapped[Service] = relationship()
     counter: Mapped[Counter | None] = relationship(back_populates="tickets")
-    notifications: Mapped[list["Notification"]] = relationship(
-        back_populates="ticket", cascade="all, delete-orphan"
-    )
+    notifications: Mapped[list["Notification"]] = relationship(back_populates="ticket", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint(
@@ -162,12 +154,8 @@ class Ticket(Base):
             "uq_ticket_active_client",
             "client_id",
             unique=True,
-            postgresql_where=text(
-                "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
-            ),
-            sqlite_where=text(
-                "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
-            ),
+            postgresql_where=text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
+            sqlite_where=text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
         ),
         Index(
             "uq_ticket_active_counter",

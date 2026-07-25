@@ -55,8 +55,5 @@ def notify_upcoming(db: Session) -> None:
     ).all()
     for ticket in waiting:
         projection = serialize_ticket(db, ticket)
-        if (
-            projection.estimated_wait_minutes is not None
-            and projection.estimated_wait_minutes <= threshold
-        ):
+        if projection.estimated_wait_minutes is not None and projection.estimated_wait_minutes <= threshold:
             add_notification(db, ticket, NotificationType.UPCOMING, unique=True)

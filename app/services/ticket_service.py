@@ -117,9 +117,7 @@ def call_next_ticket(db: Session, counter: Counter, cashier: User) -> Ticket:
     if counter.cashier_id not in {None, cashier.id}:
         raise HTTPException(status_code=403, detail="Ce guichet est affecté à un autre caissier")
     if current_counter_ticket(db, counter.id):
-        raise HTTPException(
-            status_code=409, detail="Terminez le ticket actif avant d'en appeler un autre"
-        )
+        raise HTTPException(status_code=409, detail="Terminez le ticket actif avant d'en appeler un autre")
     ticket = db.scalar(
         select(Ticket)
         .where(Ticket.status == TicketStatus.WAITING.value)
@@ -140,9 +138,7 @@ def call_next_ticket(db: Session, counter: Counter, cashier: User) -> Ticket:
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(
-            status_code=409, detail="Le ticket vient d'être appelé ailleurs"
-        ) from exc
+        raise HTTPException(status_code=409, detail="Le ticket vient d'être appelé ailleurs") from exc
     db.refresh(ticket)
     return ticket
 

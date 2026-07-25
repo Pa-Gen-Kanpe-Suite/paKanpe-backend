@@ -7,9 +7,7 @@ pytestmark = pytest.mark.integration
 def test_client_cannot_cancel_called_ticket(api, client_headers, cashier_headers, service_id):
     """Règle métier : Un client ne peut pas annuler son ticket s'il est déjà appelé."""
     # 1. Création du ticket
-    ticket = api.post(
-        "/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers
-    ).json()
+    ticket = api.post("/api/v1/client/tickets", json={"service_id": service_id}, headers=client_headers).json()
 
     # 2. Le caissier ouvre et appelle
     counter = api.get("/api/v1/cashier/counters", headers=cashier_headers).json()[0]

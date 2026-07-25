@@ -13,10 +13,7 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 @router.get("", response_model=list[NotificationOut])
 def list_notifications(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return db.scalars(
-        select(Notification)
-        .where(Notification.user_id == user.id)
-        .order_by(Notification.sent_at.desc())
-        .limit(50)
+        select(Notification).where(Notification.user_id == user.id).order_by(Notification.sent_at.desc()).limit(50)
     ).all()
 
 
