@@ -1,5 +1,6 @@
-from datetime import UTC, datetime, timedelta
 import pytest
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy import select
 
 from app.core.database import SessionLocal

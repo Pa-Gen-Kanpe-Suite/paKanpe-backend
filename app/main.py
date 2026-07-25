@@ -9,7 +9,7 @@ app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
     description="API REST du système de file d'attente PA GEN KANPE",
-) 
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
