@@ -67,7 +67,6 @@ def clean_database():
     Base.metadata.drop_all(engine)
 
 
-@pytest.fixture(autouse=True)
 def override_settings(monkeypatch):
     """
     Force NO_SHOW_GRACE_SECONDS à 0 pour tous les tests
@@ -75,6 +74,7 @@ def override_settings(monkeypatch):
     """
     settings = get_settings()
     monkeypatch.setattr(settings, "NO_SHOW_GRACE_SECONDS", 0)
+
 
 @pytest.fixture
 def api():
