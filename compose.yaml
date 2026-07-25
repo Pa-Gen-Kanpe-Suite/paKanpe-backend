@@ -1,38 +1,70 @@
 services:
+  # ----------------------------------------------------
+  # 1. Base de données PostgreSQL
+  # ----------------------------------------------------
   db:
-    image: postgres:17-alpine
+    image: postgres:${POSTGRES_VERSION:-17-alpine}
+    container_name: pagenkanpe_db
     environment:
-      POSTGRES_DB: pagenkanpe
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-pagenkanpe}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d pagenkanpe"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pagenkanpe}"]
       interval: 5s
       timeout: 3s
       retries: 10
 
+  # ----------------------------------------------------
+  # 2. API Backend (FastAPI)
+  # ----------------------------------------------------
   api:
-    build: .
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: pagenkanpe_api
+    # Optionnel mais recommandé : s'assurer que le conteneur s'exécute sous l'utilisateur 'app'
+    user: "app"
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pagenkanpe
-      JWT_SECRET: local-compose-secret-with-more-than-thirty-two-characters
-      FRONTEND_ORIGINS: http://localhost:3000
-      NO_SHOW_GRACE_SECONDS: 300
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pagenkanpe}
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-with-more-than-thirty-two-characters}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:3000}
+      NO_SHOW_GRACE_SECONDS: ${NO_SHOW_GRACE_SECONDS:-300}
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+    # Commande ajustée pour exécuter le seed de l'équipe DB avant le démarrage en hot-reload
     command: >-
       sh -c "alembic upgrade head && python -m app.seed &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
-      - ./app:/app/app
+      # Montages locaux pour le développement
+      - ../backend/app:/app/app:ro # Passé en Lecture Seule (:ro) pour éviter les conflits de permission avec l'utilisateur non-root !
+      - ../backend/alembic:/app/alembic:ro
+
+  # ----------------------------------------------------
+  # 3. Frontend (Next.js)
+  # ----------------------------------------------------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: pagenkanpe_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
-

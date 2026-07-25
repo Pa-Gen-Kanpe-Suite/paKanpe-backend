@@ -1,13 +1,16 @@
 from datetime import UTC, datetime, timedelta
-
+import pytest
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.models import Bank, Ticket, TicketSource, TicketStatus
 from app.services.queue_service import average_service_minutes, position_for_ticket
 
+pytestmark = pytest.mark.unit
+
 
 def test_position_follows_creation_order(service_id):
+    """Vérifie que la position attribuée dans la file d'attente respecte l'ordre chronologique (FIFO)."""
     with SessionLocal() as db:
         bank_id = db.scalar(select(Bank.id))
         first = Ticket(
@@ -28,11 +31,14 @@ def test_position_follows_creation_order(service_id):
         )
         db.add_all([first, second])
         db.commit()
+
+        # Validation du rang
         assert position_for_ticket(db, first) == 1
         assert position_for_ticket(db, second) == 2
 
 
 def test_average_uses_recent_completed_tickets(service_id):
+    """Vérifie que la moyenne du temps de traitement s'adapte en fonction des tickets clôturés (CLOSED)."""
     with SessionLocal() as db:
         bank_id = db.scalar(select(Bank.id))
         now = datetime.now(UTC)
@@ -48,4 +54,6 @@ def test_average_uses_recent_completed_tickets(service_id):
         )
         db.add(ticket)
         db.commit()
+
+        # Le calcul de moyenne doit retourner exactement 8 minutes
         assert average_service_minutes(db) == 8

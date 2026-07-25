@@ -1,8 +1,10 @@
 import os
 
+# Ajustement de la base de données de test et des secrets
 os.environ["DATABASE_URL"] = os.getenv("TEST_DATABASE_URL", "sqlite:///./test.db")
 os.environ["JWT_SECRET"] = "test-secret-with-more-than-thirty-two-characters"
-os.environ["NO_SHOW_GRACE_SECONDS"] = "0"
+# 300 secondes = 5 minutes de délai de grâce obligatoires selon le MVP
+os.environ["NO_SHOW_GRACE_SECONDS"] = "300"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,7 +21,8 @@ def clean_database():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
-        bank = Bank(name="UNIBANK", branch_name="Test")
+        # CORRECTION : Utilisation d'une banque fictive (Nom réel interdit)
+        bank = Bank(name="PA GEN KANPE BANK", branch_name="Agence Principale")
         db.add(bank)
         db.flush()
         db.add_all(
