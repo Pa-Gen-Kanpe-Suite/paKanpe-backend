@@ -91,9 +91,7 @@ def api():
 
 
 def login(api: TestClient, email: str, password: str) -> dict[str, str]:
-    response = api.post(
-        "/api/v1/auth/login", json={"email": email, "password": password}
-    )
+    response = api.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
@@ -133,3 +131,5 @@ def client_headers(api):
 def service_id():
     with SessionLocal() as db:
         return db.scalar(select(Service.id).where(Service.code == "DEPOT"))
+    
+    
