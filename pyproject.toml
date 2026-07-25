@@ -35,7 +35,10 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers --disable-warnings"
-markers = ["integration: tests exercising the HTTP API and database"]
+markers = [
+    "integration: tests exercising the HTTP API and database",
+    "unit: unit tests for service and core functions",
+]
 
 [tool.ruff]
 line-length = 120
