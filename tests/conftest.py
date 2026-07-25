@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
 from app.main import app
@@ -65,6 +66,15 @@ def clean_database():
     yield
     Base.metadata.drop_all(engine)
 
+
+@pytest.fixture(autouse=True)
+def override_settings(monkeypatch):
+    """
+    Force NO_SHOW_GRACE_SECONDS à 0 pour tous les tests
+    afin de pouvoir valider le no-show sans attendre.
+    """
+    settings = get_settings()
+    monkeypatch.setattr(settings, "NO_SHOW_GRACE_SECONDS", 0)
 
 @pytest.fixture
 def api():
