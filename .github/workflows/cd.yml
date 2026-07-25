@@ -66,7 +66,7 @@ jobs:
             ghcr.io/${{ env.REPO_LOWER }}:latest
 
       - name: Trigger staging deployment
-        if: ${{ secrets.STAGING_DEPLOY_WEBHOOK_URL != '' }}
+        if: secrets.STAGING_DEPLOY_WEBHOOK_URL != ''
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.STAGING_DEPLOY_WEBHOOK_URL }}
         run: curl --fail --silent --show-error -X POST "$DEPLOY_WEBHOOK_URL"
