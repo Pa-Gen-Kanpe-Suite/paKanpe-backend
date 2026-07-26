@@ -7,7 +7,7 @@ os.environ["NO_SHOW_GRACE_SECONDS"] = "0"
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
