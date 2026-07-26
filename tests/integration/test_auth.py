@@ -25,7 +25,9 @@ def test_role_is_enforced(api, client_headers):
 
 def test_invalid_credentials_are_rejected(api):
     """Vérifie le rejet des mauvais identifiants de connexion (401)."""
-    response = api.post("/api/v1/auth/login", json={"email": "admin@test.ht", "password": "wrong"})
+    response = api.post(
+        "/api/v1/auth/login", json={"email": "admin@test.ht", "password": "wrong"}
+    )
     assert response.status_code == 401
 
 

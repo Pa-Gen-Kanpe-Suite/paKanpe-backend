@@ -16,7 +16,9 @@ class UserCreate(BaseModel):
     @classmethod
     def strong_password(cls, value: str) -> str:
         if not any(c.isupper() for c in value) or not any(c.isdigit() for c in value):
-            raise ValueError("Le mot de passe doit contenir une majuscule et un chiffre")
+            raise ValueError(
+                "Le mot de passe doit contenir une majuscule et un chiffre"
+            )
         return value
 
 

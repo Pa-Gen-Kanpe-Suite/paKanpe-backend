@@ -26,7 +26,9 @@ ACTIVE_STATUSES = [
 ]
 
 
-def audit(db: Session, actor_id: int | None, action: str, entity: Ticket | Counter) -> None:
+def audit(
+    db: Session, actor_id: int | None, action: str, entity: Ticket | Counter
+) -> None:
     db.add(
         AuditLog(
             actor_id=actor_id,
@@ -40,7 +42,9 @@ def audit(db: Session, actor_id: int | None, action: str, entity: Ticket | Count
 def require_service(db: Session, service_id: int) -> Service:
     service = db.get(Service, service_id)
     if service is None or not service.is_active:
-        raise HTTPException(status_code=404, detail="Service introuvable ou indisponible")
+        raise HTTPException(
+            status_code=404, detail="Service introuvable ou indisponible"
+        )
     return service
 
 
@@ -62,7 +66,9 @@ def create_ticket(
             )
         )
         if existing:
-            raise HTTPException(status_code=409, detail="Ce client possède déjà un ticket actif")
+            raise HTTPException(
+                status_code=409, detail="Ce client possède déjà un ticket actif"
+            )
     ticket = Ticket(
         bank_id=service.bank_id,
         client_id=client.id if client else None,
@@ -82,7 +88,9 @@ def create_ticket(
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Un ticket actif existe déjà") from exc
+        raise HTTPException(
+            status_code=409, detail="Un ticket actif existe déjà"
+        ) from exc
     db.refresh(ticket)
     return ticket
 
@@ -91,7 +99,9 @@ def cancel_ticket(db: Session, ticket: Ticket, user: User) -> Ticket:
     if ticket.client_id != user.id:
         raise HTTPException(status_code=403, detail="Ce ticket ne vous appartient pas")
     if ticket.status != TicketStatus.WAITING.value:
-        raise HTTPException(status_code=409, detail="Seul un ticket en attente peut être annulé")
+        raise HTTPException(
+            status_code=409, detail="Seul un ticket en attente peut être annulé"
+        )
     ticket.status = TicketStatus.CANCELLED.value
     ticket.closed_at = datetime.now(UTC)
     add_notification(db, ticket, NotificationType.CANCELLED)
@@ -106,7 +116,9 @@ def current_counter_ticket(db: Session, counter_id: int) -> Ticket | None:
     return db.scalar(
         select(Ticket).where(
             Ticket.counter_id == counter_id,
-            Ticket.status.in_([TicketStatus.CALLED.value, TicketStatus.IN_PROGRESS.value]),
+            Ticket.status.in_(
+                [TicketStatus.CALLED.value, TicketStatus.IN_PROGRESS.value]
+            ),
         )
     )
 
@@ -115,9 +127,14 @@ def call_next_ticket(db: Session, counter: Counter, cashier: User) -> Ticket:
     if counter.status != CounterStatus.OPEN.value:
         raise HTTPException(status_code=409, detail="Le guichet doit être ouvert")
     if counter.cashier_id not in {None, cashier.id}:
-        raise HTTPException(status_code=403, detail="Ce guichet est affecté à un autre caissier")
+        raise HTTPException(
+            status_code=403, detail="Ce guichet est affecté à un autre caissier"
+        )
     if current_counter_ticket(db, counter.id):
-        raise HTTPException(status_code=409, detail="Terminez le ticket actif avant d'en appeler un autre")
+        raise HTTPException(
+            status_code=409,
+            detail="Terminez le ticket actif avant d'en appeler un autre",
+        )
     ticket = db.scalar(
         select(Ticket)
         .where(Ticket.status == TicketStatus.WAITING.value)
@@ -138,14 +155,18 @@ def call_next_ticket(db: Session, counter: Counter, cashier: User) -> Ticket:
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Le ticket vient d'être appelé ailleurs") from exc
+        raise HTTPException(
+            status_code=409, detail="Le ticket vient d'être appelé ailleurs"
+        ) from exc
     db.refresh(ticket)
     return ticket
 
 
 def start_ticket(db: Session, ticket: Ticket, cashier: User) -> Ticket:
     if ticket.status != TicketStatus.CALLED.value:
-        raise HTTPException(status_code=409, detail="Le ticket doit être appelé avant le service")
+        raise HTTPException(
+            status_code=409, detail="Le ticket doit être appelé avant le service"
+        )
     if ticket.counter is None or ticket.counter.cashier_id != cashier.id:
         raise HTTPException(status_code=403, detail="Ticket affecté à un autre guichet")
     ticket.status = TicketStatus.IN_PROGRESS.value
@@ -156,7 +177,9 @@ def start_ticket(db: Session, ticket: Ticket, cashier: User) -> Ticket:
     return ticket
 
 
-def close_ticket(db: Session, ticket: Ticket, cashier: User, comment: str | None) -> Ticket:
+def close_ticket(
+    db: Session, ticket: Ticket, cashier: User, comment: str | None
+) -> Ticket:
     if ticket.status != TicketStatus.IN_PROGRESS.value:
         raise HTTPException(status_code=409, detail="Le ticket doit être en service")
     if ticket.counter is None or ticket.counter.cashier_id != cashier.id:
@@ -174,7 +197,9 @@ def close_ticket(db: Session, ticket: Ticket, cashier: User, comment: str | None
 
 def mark_absent(db: Session, ticket: Ticket, cashier: User) -> Ticket:
     if ticket.status != TicketStatus.CALLED.value or ticket.called_at is None:
-        raise HTTPException(status_code=409, detail="Seul un ticket appelé peut être marqué absent")
+        raise HTTPException(
+            status_code=409, detail="Seul un ticket appelé peut être marqué absent"
+        )
     if ticket.counter is None or ticket.counter.cashier_id != cashier.id:
         raise HTTPException(status_code=403, detail="Ticket affecté à un autre guichet")
     called_at = ticket.called_at

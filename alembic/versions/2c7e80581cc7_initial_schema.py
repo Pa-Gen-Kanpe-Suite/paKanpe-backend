@@ -5,16 +5,16 @@ Revises:
 Create Date: 2026-07-22 12:19:11.948055
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = "2c7e80581cc7"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -55,7 +55,9 @@ def upgrade() -> None:
         sa.Column("role", sa.String(length=20), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint("role IN ('CLIENT','AGENT','CASHIER','ADMIN')", name="ck_users_role"),
+        sa.CheckConstraint(
+            "role IN ('CLIENT','AGENT','CASHIER','ADMIN')", name="ck_users_role"
+        ),
         sa.ForeignKeyConstraint(["bank_id"], ["banks.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("bank_identifier"),
@@ -75,7 +77,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["actor_id"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_audit_logs_action"), "audit_logs", ["action"], unique=False)
+    op.create_index(
+        op.f("ix_audit_logs_action"), "audit_logs", ["action"], unique=False
+    )
     op.create_table(
         "counters",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -85,13 +89,17 @@ def upgrade() -> None:
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("cashier_id", sa.Integer(), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint("status IN ('CLOSED','OPEN','PAUSED')", name="ck_counter_status"),
+        sa.CheckConstraint(
+            "status IN ('CLOSED','OPEN','PAUSED')", name="ck_counter_status"
+        ),
         sa.CheckConstraint("number > 0", name="ck_counter_number"),
         sa.ForeignKeyConstraint(["bank_id"], ["banks.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["cashier_id"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("uq_counter_bank_number", "counters", ["bank_id", "number"], unique=True)
+    op.create_index(
+        "uq_counter_bank_number", "counters", ["bank_id", "number"], unique=True
+    )
     op.create_table(
         "tickets",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -111,7 +119,8 @@ def upgrade() -> None:
         sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True),
         sa.CheckConstraint("source IN ('DIGITAL','PHYSICAL')", name="ck_ticket_source"),
         sa.CheckConstraint(
-            "status IN ('WAITING','CALLED','IN_PROGRESS','CLOSED','ABSENT','CANCELLED')", name="ck_ticket_status"
+            "status IN ('WAITING','CALLED','IN_PROGRESS','CLOSED','ABSENT','CANCELLED')",
+            name="ck_ticket_status",
         ),
         sa.ForeignKeyConstraint(["bank_id"], ["banks.id"], ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["client_id"], ["users.id"], ondelete="RESTRICT"),
@@ -120,23 +129,33 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_tickets_code"), "tickets", ["code"], unique=True)
-    op.create_index(op.f("ix_tickets_created_at"), "tickets", ["created_at"], unique=False)
+    op.create_index(
+        op.f("ix_tickets_created_at"), "tickets", ["created_at"], unique=False
+    )
     op.create_index(op.f("ix_tickets_status"), "tickets", ["status"], unique=False)
     op.create_index(
         "uq_ticket_active_client",
         "tickets",
         ["client_id"],
         unique=True,
-        postgresql_where=sa.text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
-        sqlite_where=sa.text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
+        postgresql_where=sa.text(
+            "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
+        ),
+        sqlite_where=sa.text(
+            "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
+        ),
     )
     op.create_index(
         "uq_ticket_active_counter",
         "tickets",
         ["counter_id"],
         unique=True,
-        postgresql_where=sa.text("counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"),
-        sqlite_where=sa.text("counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"),
+        postgresql_where=sa.text(
+            "counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"
+        ),
+        sqlite_where=sa.text(
+            "counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"
+        ),
     )
     op.create_table(
         "notifications",
@@ -148,7 +167,8 @@ def upgrade() -> None:
         sa.Column("is_read", sa.Boolean(), nullable=False),
         sa.Column("sent_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
-            "type IN ('CREATED','UPCOMING','CALLED','CANCELLED','ABSENT','COMPLETED')", name="ck_notification_type"
+            "type IN ('CREATED','UPCOMING','CALLED','CANCELLED','ABSENT','COMPLETED')",
+            name="ck_notification_type",
         ),
         sa.ForeignKeyConstraint(["ticket_id"], ["tickets.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
@@ -163,14 +183,22 @@ def downgrade() -> None:
     op.drop_index(
         "uq_ticket_active_counter",
         table_name="tickets",
-        postgresql_where=sa.text("counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"),
-        sqlite_where=sa.text("counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"),
+        postgresql_where=sa.text(
+            "counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"
+        ),
+        sqlite_where=sa.text(
+            "counter_id IS NOT NULL AND status IN ('CALLED','IN_PROGRESS')"
+        ),
     )
     op.drop_index(
         "uq_ticket_active_client",
         table_name="tickets",
-        postgresql_where=sa.text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
-        sqlite_where=sa.text("client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"),
+        postgresql_where=sa.text(
+            "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
+        ),
+        sqlite_where=sa.text(
+            "client_id IS NOT NULL AND status IN ('WAITING','CALLED','IN_PROGRESS')"
+        ),
     )
     op.drop_index(op.f("ix_tickets_status"), table_name="tickets")
     op.drop_index(op.f("ix_tickets_created_at"), table_name="tickets")

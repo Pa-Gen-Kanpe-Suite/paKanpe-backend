@@ -8,7 +8,12 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import require_roles
 from app.core.database import get_db
 from app.models import Counter, CounterStatus, User, UserRole
-from app.schemas import CounterCreate, CounterOut, CounterStatusUpdate, StatisticsOverview
+from app.schemas import (
+    CounterCreate,
+    CounterOut,
+    CounterStatusUpdate,
+    StatisticsOverview,
+)
 from app.services.statistics_service import overview
 from app.services.ticket_service import current_counter_ticket
 
@@ -32,7 +37,10 @@ def as_counter_out(db: Session, counter: Counter) -> CounterOut:
 
 @router.get("/counters", response_model=list[CounterOut])
 def list_counters(db: Session = Depends(get_db), user: User = Depends(admin_only)):
-    return [as_counter_out(db, counter) for counter in db.scalars(select(Counter).order_by(Counter.number)).all()]
+    return [
+        as_counter_out(db, counter)
+        for counter in db.scalars(select(Counter).order_by(Counter.number)).all()
+    ]
 
 
 @router.post("/counters", response_model=CounterOut, status_code=201)
@@ -53,7 +61,9 @@ def create_counter(
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Ce numéro de guichet existe déjà") from exc
+        raise HTTPException(
+            status_code=409, detail="Ce numéro de guichet existe déjà"
+        ) from exc
     db.refresh(counter)
     return as_counter_out(db, counter)
 
@@ -69,7 +79,9 @@ def set_counter_status(
     if counter is None:
         raise HTTPException(status_code=404, detail="Guichet introuvable")
     if payload.status != CounterStatus.OPEN and current_counter_ticket(db, counter.id):
-        raise HTTPException(status_code=409, detail="Un ticket est actif sur ce guichet")
+        raise HTTPException(
+            status_code=409, detail="Un ticket est actif sur ce guichet"
+        )
     counter.status = payload.status.value
     if payload.status == CounterStatus.CLOSED:
         counter.cashier_id = None

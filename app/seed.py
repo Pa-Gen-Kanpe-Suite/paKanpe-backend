@@ -39,7 +39,13 @@ def seed() -> None:
                 "Admin123!",
                 UserRole.ADMIN,
             ),
-            ("Agent Démo", "agent@pagenkanpe.ht", "+50937000002", "Agent123!", UserRole.AGENT),
+            (
+                "Agent Démo",
+                "agent@pagenkanpe.ht",
+                "+50937000002",
+                "Agent123!",
+                UserRole.AGENT,
+            ),
             (
                 "Caissier Démo",
                 "cashier@pagenkanpe.ht",

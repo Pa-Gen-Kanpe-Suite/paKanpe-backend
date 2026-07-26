@@ -28,7 +28,9 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Jeton invalide") from exc
     user = db.get(User, user_id)
     if user is None or not user.is_active:
-        raise HTTPException(status_code=401, detail="Utilisateur introuvable ou désactivé")
+        raise HTTPException(
+            status_code=401, detail="Utilisateur introuvable ou désactivé"
+        )
     return user
 
 
@@ -37,7 +39,9 @@ def require_roles(*roles: UserRole) -> Callable:
 
     def role_dependency(user: User = Depends(get_current_user)) -> User:
         if user.role not in allowed:
-            raise HTTPException(status_code=403, detail="Rôle insuffisant pour cette action")
+            raise HTTPException(
+                status_code=403, detail="Rôle insuffisant pour cette action"
+            )
         return user
 
     return role_dependency
