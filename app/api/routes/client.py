@@ -19,7 +19,9 @@ def create_digital_ticket(
     db: Session = Depends(get_db),
     user: User = Depends(client_only),
 ):
-    ticket = create_ticket(db, payload.service_id, TicketSource.DIGITAL, user, client=user)
+    ticket = create_ticket(
+        db, payload.service_id, TicketSource.DIGITAL, user, client=user
+    )
     return serialize_ticket(db, ticket)
 
 
@@ -29,7 +31,10 @@ def list_tickets(
     user: User = Depends(client_only),
 ):
     tickets = db.scalars(
-        select(Ticket).where(Ticket.client_id == user.id).order_by(Ticket.created_at.desc()).limit(50)
+        select(Ticket)
+        .where(Ticket.client_id == user.id)
+        .order_by(Ticket.created_at.desc())
+        .limit(50)
     ).all()
     return [serialize_ticket(db, ticket) for ticket in tickets]
 

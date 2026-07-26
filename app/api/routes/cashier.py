@@ -48,9 +48,13 @@ def update_counter_status(
     if counter is None:
         raise HTTPException(status_code=404, detail="Guichet introuvable")
     if counter.cashier_id not in {None, user.id}:
-        raise HTTPException(status_code=403, detail="Guichet utilisé par un autre caissier")
+        raise HTTPException(
+            status_code=403, detail="Guichet utilisé par un autre caissier"
+        )
     if payload.status != CounterStatus.OPEN and current_counter_ticket(db, counter.id):
-        raise HTTPException(status_code=409, detail="Terminez le ticket actif avant la pause")
+        raise HTTPException(
+            status_code=409, detail="Terminez le ticket actif avant la pause"
+        )
     counter.status = payload.status.value
     counter.cashier_id = user.id if payload.status != CounterStatus.CLOSED else None
     db.commit()
@@ -94,7 +98,11 @@ def close(
         raise HTTPException(status_code=404, detail="Ticket introuvable")
     counter = ticket.counter
     close_ticket(db, ticket, user, payload.comment)
-    if payload.auto_call_next and counter and counter.status == CounterStatus.OPEN.value:
+    if (
+        payload.auto_call_next
+        and counter
+        and counter.status == CounterStatus.OPEN.value
+    ):
         try:
             call_next_ticket(db, counter, user)
         except HTTPException as exc:

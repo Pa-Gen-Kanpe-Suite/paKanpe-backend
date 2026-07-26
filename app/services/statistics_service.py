@@ -16,17 +16,30 @@ def overview(db: Session, day: date | None = None) -> StatisticsOverview:
     def count(*statuses: str) -> int:
         return (
             db.scalar(
-                select(func.count(Ticket.id)).where(Ticket.created_at.between(start, end), Ticket.status.in_(statuses))
+                select(func.count(Ticket.id)).where(
+                    Ticket.created_at.between(start, end), Ticket.status.in_(statuses)
+                )
             )
             or 0
         )
 
-    tickets = db.scalars(select(Ticket).where(Ticket.created_at.between(start, end))).all()
+    tickets = db.scalars(
+        select(Ticket).where(Ticket.created_at.between(start, end))
+    ).all()
     waits = []
     for ticket in tickets:
         if ticket.called_at:
-            waits.append(max((ticket.called_at - ticket.created_at).total_seconds() / 60, 0))
-    active = db.scalar(select(func.count(Counter.id)).where(Counter.status == CounterStatus.OPEN.value)) or 0
+            waits.append(
+                max((ticket.called_at - ticket.created_at).total_seconds() / 60, 0)
+            )
+    active = (
+        db.scalar(
+            select(func.count(Counter.id)).where(
+                Counter.status == CounterStatus.OPEN.value
+            )
+        )
+        or 0
+    )
     return StatisticsOverview(
         date=selected.isoformat(),
         tickets_issued=len(tickets),

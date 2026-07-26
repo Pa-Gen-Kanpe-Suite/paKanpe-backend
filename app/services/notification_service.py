@@ -37,7 +37,9 @@ def add_notification(
             ticket_id=ticket.id,
             user_id=ticket.client_id,
             type=notification_type.value,
-            message=MESSAGES[notification_type].format(code=ticket.code, counter=counter),
+            message=MESSAGES[notification_type].format(
+                code=ticket.code, counter=counter
+            ),
         )
     )
 
@@ -49,11 +51,16 @@ def notify_upcoming(db: Session) -> None:
     threshold = get_settings().upcoming_notification_minutes
     waiting = db.scalars(
         select(Ticket)
-        .where(Ticket.status == TicketStatus.WAITING.value, Ticket.client_id.is_not(None))
+        .where(
+            Ticket.status == TicketStatus.WAITING.value, Ticket.client_id.is_not(None)
+        )
         .order_by(Ticket.created_at, Ticket.id)
         .limit(100)
     ).all()
     for ticket in waiting:
         projection = serialize_ticket(db, ticket)
-        if projection.estimated_wait_minutes is not None and projection.estimated_wait_minutes <= threshold:
+        if (
+            projection.estimated_wait_minutes is not None
+            and projection.estimated_wait_minutes <= threshold
+        ):
             add_notification(db, ticket, NotificationType.UPCOMING, unique=True)

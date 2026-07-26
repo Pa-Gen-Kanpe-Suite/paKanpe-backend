@@ -34,5 +34,7 @@ def test_prevent_duplicate_email(db_session):
     db_session.commit()
 
     db_session.add(user2)
-    with pytest.raises(IntegrityError):  # La BDD doit lever cette erreur Postgres/SQLite
+    with pytest.raises(
+        IntegrityError
+    ):  # La BDD doit lever cette erreur Postgres/SQLite
         db_session.commit()

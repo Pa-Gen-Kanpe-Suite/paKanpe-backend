@@ -14,7 +14,9 @@ router = APIRouter(tags=["Public"])
 
 @router.get("/services", response_model=list[ServiceOut])
 def services(db: Session = Depends(get_db)):
-    return db.scalars(select(Service).where(Service.is_active.is_(True)).order_by(Service.id)).all()
+    return db.scalars(
+        select(Service).where(Service.is_active.is_(True)).order_by(Service.id)
+    ).all()
 
 
 @router.get("/queues/position/{ticket_code}", response_model=QueuePosition)

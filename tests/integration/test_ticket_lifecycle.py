@@ -3,7 +3,9 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-def test_complete_digital_ticket_lifecycle(api, client_headers, cashier_headers, admin_headers, service_id):
+def test_complete_digital_ticket_lifecycle(
+    api, client_headers, cashier_headers, admin_headers, service_id
+):
     """
     Test d'intégration du cycle de vie complet d'un ticket numérique :
     WAITING -> CALLED -> IN_PROGRESS -> CLOSED + Validation des statistiques.
@@ -83,7 +85,9 @@ def test_client_can_cancel_only_while_waiting(api, client_headers, service_id):
     assert cancelled.json()["status"] == "CANCELLED"
 
 
-def test_physical_ticket_joins_same_queue(api, agent_headers, cashier_headers, service_id):
+def test_physical_ticket_joins_same_queue(
+    api, agent_headers, cashier_headers, service_id
+):
     """
     Vérifie que les tickets physiques créés par un agent
     intègrent la même file d'attente unique.
@@ -98,7 +102,9 @@ def test_physical_ticket_joins_same_queue(api, agent_headers, cashier_headers, s
     assert physical.json()["position"] == 1
 
 
-def test_client_can_consult_position_and_estimated_time(api, client_headers, service_id):
+def test_client_can_consult_position_and_estimated_time(
+    api, client_headers, service_id
+):
     """
     Vérifie la consultation de la position et du temps d'attente
     estimé par le client.
@@ -119,7 +125,9 @@ def test_client_can_consult_position_and_estimated_time(api, client_headers, ser
     assert "estimated_wait_minutes" in my_ticket.json()
 
 
-def test_no_show_grace_period_handling(api, client_headers, cashier_headers, service_id):
+def test_no_show_grace_period_handling(
+    api, client_headers, cashier_headers, service_id
+):
     """
     Vérifie le passage du statut d'un ticket en ABSENT ou LATE
     (gestion du délai de grâce).
