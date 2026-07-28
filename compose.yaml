@@ -24,10 +24,9 @@ services:
   # ----------------------------------------------------
   api:
     build:
-      context: ../backend
+      context: .  # ← Changé de ../backend à .
       dockerfile: Dockerfile
     container_name: pagenkanpe_api
-    # Optionnel mais recommandé : s'assurer que le conteneur s'exécute sous l'utilisateur 'app'
     user: "app"
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-pagenkanpe}
@@ -39,32 +38,31 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # Commande ajustée pour exécuter le seed de l'équipe DB avant le démarrage en hot-reload
     command: >-
-      sh -c "alembic upgrade head && python -m app.seed &&
+      sh -c "alembic upgrade head && 
+      python -c 'from scripts.seed import seed; seed()' &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
-      # Montages locaux pour le développement
-      - ../backend/app:/app/app:ro # Passé en Lecture Seule (:ro) pour éviter les conflits de permission avec l'utilisateur non-root !
-      - ../backend/alembic:/app/alembic:ro
+      - ./app:/app/app:ro  # ← Changé de ../backend/app à ./app
+      - ./alembic:/app/alembic:ro  # ← Changé de ../backend/alembic à ./alembic
 
   # ----------------------------------------------------
-  # 3. Frontend (Next.js)
+  # 3. Frontend (Next.js) - Commenté car vous n'avez pas de frontend
   # ----------------------------------------------------
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    container_name: pagenkanpe_frontend
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #     dockerfile: Dockerfile
+  #   container_name: pagenkanpe_frontend
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - api
+  #   volumes:
+  #     - ../frontend:/app
+  #     - /app/node_modules
 
 volumes:
   postgres_data:
