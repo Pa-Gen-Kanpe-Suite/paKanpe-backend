@@ -61,9 +61,7 @@ def seed():
         db.commit()
         print("✓ Services créés")
 
-        # ===============================
         # ADMIN
-        # ===============================
         admin = db.scalar(select(User).where(User.email == "admin@pakanpe.com"))
         if not admin:
             admin = User(
@@ -77,9 +75,7 @@ def seed():
             db.add(admin)
         print("✓ Admin créé")
 
-        # ===============================
         # AGENT
-        # ===============================
         agent = db.scalar(select(User).where(User.email == "agent@pakanpe.com"))
         if not agent:
             agent = User(
@@ -111,9 +107,7 @@ def seed():
         db.refresh(cashier)  # ← Récupère l'ID généré
         print("✓ Caissier créé")
 
-        # ===============================
-        # GUICHETS (avec cashier déjà commit)
-        # ===============================
+        # GUICHETS 
         counters = [
             (1, "Guichet 1"),
             (2, "Guichet 2"),
@@ -141,9 +135,7 @@ def seed():
         db.commit()
         print("✓ Guichets créés")
 
-        # ===============================
         # RÉSUMÉ FINAL
-        # ===============================
         print("\n===================================")
         print("BASE DE DONNÉES INITIALISÉE")
         print("===================================")
