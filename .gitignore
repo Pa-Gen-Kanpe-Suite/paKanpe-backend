@@ -1,11 +1,37 @@
+# Secrets and local configuration
 .env
+.env.*
+!.env.example
+
+# Python environments and caches
 .venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
-.coverage
-htmlcov/
-pagenkanpe.db
-test.db
+.mypy_cache/
+.pyre/
 
+# Coverage and test artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# Local databases and SQLite sidecar files
+*.db
+*.db-*
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Logs
+*.log
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

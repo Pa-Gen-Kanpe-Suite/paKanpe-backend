@@ -18,6 +18,17 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        """Use the psycopg v3 driver even with provider-generated URLs."""
+        if isinstance(value, str):
+            if value.startswith("postgres://"):
+                return "postgresql+psycopg://" + value.removeprefix("postgres://")
+            if value.startswith("postgresql://"):
+                return "postgresql+psycopg://" + value.removeprefix("postgresql://")
+        return value
+
     @field_validator("jwt_secret")
     @classmethod
     def validate_secret(cls, value: str) -> str:
